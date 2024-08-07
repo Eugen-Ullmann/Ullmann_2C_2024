@@ -10,7 +10,7 @@
  * |:----------:|:-----------------------------------------------|
  * | 12/09/2023 | Document creation		                         |
  *
- * @author Albano Peñalva (albano.penalva@uner.edu.ar)
+ * @author Eugen Ullmann (eu.ullmann@gmail.com)
  *
  */
 
@@ -23,7 +23,7 @@
 #include "led.h"
 #include "switch.h"
 /*==================[macros and definitions]=================================*/
-#define CONFIG_BLINK_PERIOD 350
+#define CONFIG_BLINK_PERIOD 150
 /*==================[internal data definition]===============================*/
 
 /*==================[internal functions declaration]=========================*/
