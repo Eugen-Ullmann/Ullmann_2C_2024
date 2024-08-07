@@ -103,7 +103,28 @@ void control_led(struct leds *ledptr)
 /*==================[external functions definition]==========================*/
 void app_main(void)
 {
-	
+	uint8_t teclas;
+	LedsInit();
+	SwitchesInit();
+	while (1)
+	{
+		teclas = SwitchesRead();
+		switch (teclas)
+		{
+		case SWITCH_1:
+			struct leds my_leds = {TOGGLE, 1, 20, 100};
+			control_led(&my_leds);
+			break;
+		case SWITCH_2:
+			struct leds my_leds2 = {TOGGLE, 2, 20, 100};
+			control_led(&my_leds2);
+			break;
+		case SWITCH_1 | SWITCH_2:
+			struct leds my_leds3 = {TOGGLE, 3, 27, 100};
+			control_led(&my_leds3);
+			break;
+		}
+	}
 };
 
 /*==================[end of file]============================================*/
