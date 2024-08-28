@@ -28,6 +28,15 @@ typedef struct
 	io_t dir;	/*!< GPIO direction '0' IN;  '1' OUT*/
 } gpioConf_t;
 /*==================[internal functions declaration]=========================*/
+/**
+ * @brief Convierte un numero Bcd a decimal.
+ * 
+ * Esta función toma un numero decimal y lo convierte a bcd
+ * @param data El número decimal el cual se convierte.
+ * @param digits La cantidad de dígitos del número.
+ * @param bcd_number El arreglo donde se almacena el numero bcd.
+ * @return Ninguno.
+ */
 void convertToBcdArray(uint32_t data, uint8_t digits, uint8_t *bcd_number)
 {
 
@@ -38,7 +47,17 @@ void convertToBcdArray(uint32_t data, uint8_t digits, uint8_t *bcd_number)
 	}
 }
 
-int contar_digitos(int num)
+/**
+ * @brief Cuenta la cantidad de dígitos de un número entero dado.
+ * 
+ * Esta función toma un número entero como entrada, lo convierte a una cadena utilizando sprintf,
+ * y devuelve la longitud de la cadena resultante, efectivamente contando la cantidad de dígitos
+ * del número entero original.
+ * 
+ * @param num El número entero del cual se cuentan los dígitos.
+ * @return La cantidad de dígitos del número entero de entrada.
+ */
+int contar_digitos(int num) 
 {
 	// Convertimos el número a cadena usando sprintf
 	char str[50];			 // Buffer para almacenar el número como cadena
@@ -47,6 +66,16 @@ int contar_digitos(int num)
 	// Devolvemos la longitud de la cadena (sin el signo si es negativo)
 	return strlen(str);
 }
+/**
+ * @brief Convierte un número dado a binario y configura los pines GPIO correspondientes.
+ *
+ * Esta función toma un entero de 8 bits sin signo y un puntero a una estructura gpioConf_t como entrada.
+ * Luego, convierte el número a binario utilizando un bucle, y para cada bit, configura el correspondiente pin GPIO a ON o OFF.
+ *
+ * @param numero El entero de 8 bits sin signo a convertir a binario.
+ * @param GPIOdigitos Un puntero a una estructura gpioConf_t que contiene las configuraciones de los pines GPIO.
+ * @return Ninguno
+ */
 void convertir_a_binario(uint8_t numero, gpioConf_t *GPIOdigitos)
 {
 
@@ -60,30 +89,41 @@ void convertir_a_binario(uint8_t numero, gpioConf_t *GPIOdigitos)
 			GPIOOff(GPIOdigitos[i].pin);
 	};
 }
-void graficarNumero(gpioConf_t *GPIOdigitos , uint8_t numero, gpioConf_t *GPIOmapa, uint32_t data)
+/**
+ * @brief Grafica un número en un display de 7 segmentos.
+ * 
+ * Esta función toma como entrada un número entero, lo convierte a un arreglo de dígitos BCD,
+ * y luego grafica cada dígito en un display de 7 segmentos utilizando la configuración de GPIO proporcionada.
+ * 
+ * @param GPIOdigitos Puntero a la configuración de GPIO para los dígitos del display.
+ * @param numero Número de dígitos a graficar.
+ * @param GPIOmapa Puntero a la configuración de GPIO para el mapa de segmentos del display.
+ * @param data Número entero a graficar.
+ * @return None
+ */
+void graficarNumero(gpioConf_t *GPIOdigitos, uint8_t numero, gpioConf_t *GPIOmapa, uint32_t data)
 {
-	uint8_t digitosSeparados [3];
-	convertToBcdArray (data, numero , digitosSeparados);
+	uint8_t digitosSeparados[3];
+	convertToBcdArray(data, numero, digitosSeparados);
 	for (int i = 0; i < 3; i++)
 	{
-		convertir_a_binario(digitosSeparados[i],GPIOdigitos);
+		convertir_a_binario(digitosSeparados[i], GPIOdigitos);
 		GPIOOn(GPIOmapa[i].pin);
 		GPIOOff(GPIOmapa[i].pin);
-
 	}
 }
 /*==================[external functions definition]==========================*/
 void app_main(void)
 {
-	uint32_t data = 461;
+	uint32_t data = 749;
 	uint8_t digits;
 	uint8_t bcd_number[32];
 	digits = contar_digitos(data);
 	printf("El número tiene %d dígitos.\n", digits);
 
-	//convertToBcdArray(data, digits, bcd_number);
-	//for (int i = 0; i < digits; i++)
-//	{
+	// convertToBcdArray(data, digits, bcd_number);
+	// for (int i = 0; i < digits; i++)
+	//	{
 	//	printf("%d\n", bcd_number[i]);
 	//}
 	gpioConf_t GPIOdigitos[] =
@@ -97,8 +137,8 @@ void app_main(void)
 	{
 		GPIOInit(GPIOdigitos[i].pin, GPIOdigitos[i].dir);
 	}
-	//printf("%d", bcd_number[0]);
-	//convertir_a_binario(bcd_number[0], GPIOdigitos);
+	// printf("%d", bcd_number[0]);
+	// convertir_a_binario(bcd_number[0], GPIOdigitos);
 	gpioConf_t GPIOmapa[] =
 		{
 			{GPIO_19, GPIO_OUTPUT},
@@ -109,6 +149,6 @@ void app_main(void)
 	{
 		GPIOInit(GPIOmapa[i].pin, GPIOmapa[i].dir);
 	}
-	graficarNumero(GPIOdigitos,digits,GPIOmapa,data);
+	graficarNumero(GPIOdigitos, digits, GPIOmapa, data);
 }
 /*==================[end of file]============================================*/
