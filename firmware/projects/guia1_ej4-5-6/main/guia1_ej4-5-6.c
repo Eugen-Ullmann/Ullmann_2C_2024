@@ -1,15 +1,22 @@
-/*! @mainpage Blinking switch
+/*! @mainpage Guia1 Ej4-5-6
  *
  * \section genDesc General Description
  *
- * This example makes LED_1 and LED_2 blink if SWITCH_1 or SWITCH_2 are pressed.
+ * Este ejemplo muestra el uso de la API GPIO para graficar un número en un display.
  *
  * @section changelog Changelog
  *
- * |   Date	    | Description                                    |
- * |:----------:|:-----------------------------------------------|
- * | 12/09/2023 | Document creation		                         |
- *
+ * |   EDU-ESP    | Periferico                                    |
+ * |:----------:|:-----------|
+ * | GPIO_20    | 		D1   |
+ * | GPIO_21    | 		D2 |
+ * | GPIO_22    | 		D3   |
+ * | GPIO_23    | 		D4   |
+ * | GPIO_19    | 		SEL_1 |
+ * | GPIO_18    | 		SEL_2   |
+ * | GPIO_9    | 		SEL_3   |
+ * | +5V    | 		+5V   |
+ * | GND    | 		GND   |
  * @author Eugen Ullmann (eu.ullmann@gmail.com)
  *
  */
@@ -22,6 +29,13 @@
 /*==================[macros and definitions]=================================*/
 
 /*==================[internal data definition]===============================*/
+/**
+ * @struct gpioConf_t
+ * @brief Estructura de configuración para un pin GPIO.
+ *
+ * Esta estructura se utiliza para configurar un pin GPIO, especificando el número del pin
+ * y la dirección del flujo de datos (entrada o salida).
+ */
 typedef struct
 {
 	gpio_t pin; /*!< GPIO pin number */
@@ -30,7 +44,7 @@ typedef struct
 /*==================[internal functions declaration]=========================*/
 /**
  * @brief Convierte un numero Bcd a decimal.
- * 
+ *
  * Esta función toma un numero decimal y lo convierte a bcd
  * @param data El número decimal el cual se convierte.
  * @param digits La cantidad de dígitos del número.
@@ -49,15 +63,15 @@ void convertToBcdArray(uint32_t data, uint8_t digits, uint8_t *bcd_number)
 
 /**
  * @brief Cuenta la cantidad de dígitos de un número entero dado.
- * 
+ *
  * Esta función toma un número entero como entrada, lo convierte a una cadena utilizando sprintf,
  * y devuelve la longitud de la cadena resultante, efectivamente contando la cantidad de dígitos
  * del número entero original.
- * 
+ *
  * @param num El número entero del cual se cuentan los dígitos.
  * @return La cantidad de dígitos del número entero de entrada.
  */
-int contar_digitos(int num) 
+int contar_digitos(int num)
 {
 	// Convertimos el número a cadena usando sprintf
 	char str[50];			 // Buffer para almacenar el número como cadena
@@ -91,10 +105,10 @@ void convertir_a_binario(uint8_t numero, gpioConf_t *GPIOdigitos)
 }
 /**
  * @brief Grafica un número en un display de 7 segmentos.
- * 
+ *
  * Esta función toma como entrada un número entero, lo convierte a un arreglo de dígitos BCD,
  * y luego grafica cada dígito en un display de 7 segmentos utilizando la configuración de GPIO proporcionada.
- * 
+ *
  * @param GPIOdigitos Puntero a la configuración de GPIO para los dígitos del display.
  * @param numero Número de dígitos a graficar.
  * @param GPIOmapa Puntero a la configuración de GPIO para el mapa de segmentos del display.
