@@ -33,9 +33,10 @@
 #include "switch.h"
 #include "hc_sr04.h"
 #include "gpio_mcu.h"
+#include "lcditse0803.h"
 /*==================[macros and definitions]=================================*/
 #define CONFIG_BLINK_PERIOD 1000
-#define CONFIG_BLINK_PERIOD_3 1500
+#define CONFIG_BLINK_PERIOD_3 250
 #define CONFIG_BLINK_PERIOD_2 500
 
 /*==================[internal data definition]===============================*/
@@ -56,9 +57,11 @@ static void KeyTask(void *pvParameter)
 		if (teclas == SWITCH_1)
 			toggle = !toggle;
 		if (teclas == SWITCH_2)
+		{
 			hold = !hold;
+		}
+		vTaskDelay(CONFIG_BLINK_PERIOD_2 / portTICK_PERIOD_MS); // usar otro delay
 	}
-	vTaskDelay(CONFIG_BLINK_PERIOD_2 / portTICK_PERIOD_MS); // usar otro delay
 }
 
 static void MeasureTask(void *pvParameter)
@@ -67,7 +70,7 @@ static void MeasureTask(void *pvParameter)
 	{
 		if (toggle)
 			distance = HcSr04ReadDistanceInCentimeters();
-		vTaskDelay(1000 / portTICK_PERIOD_MS);
+		vTaskDelay(CONFIG_BLINK_PERIOD_3 / portTICK_PERIOD_MS);
 	}
 }
 static void LedsTask(void *pvParameter)
@@ -80,18 +83,24 @@ static void LedsTask(void *pvParameter)
 			LedOff(LED_2);
 			LedOff(LED_3);
 		}
-		if (distance >= 10 && distance  <= 20)
-			LedOn(LED_1);
-		if (distance >=  20 && distance  <= 30)
+		if (distance >= 10 && distance <= 20)
 		{
-			LedOn(LED_1)
-				LedOn(LED_2);
+			LedOn(LED_1);
+			LedOff(LED_2);
+			LedOff(LED_3);
+		}
+		
+		if (distance >= 20 && distance <= 30)
+		{
+			LedOn(LED_1);
+			LedOn(LED_2);
+			LedOff(LED_3);
 		}
 		if (distance >= 30)
 		{
-			LedOn(LED_1)
-				LedOn(LED_2)
-					LedOn(LED_3);
+			LedOn(LED_1);
+			LedOn(LED_2);
+			LedOn(LED_3);
 		}
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
@@ -109,7 +118,7 @@ static void LCDTask(void *pvParameter)
 		}
 		else
 			LcdItsE0803Off();
-		vtaskDelay(1000 / portTICK_PERIOD_MS);
+		vTaskDelay(CONFIG_BLINK_PERIOD_2 / portTICK_PERIOD_MS);
 	}
 }
 /*==================[external functions definition]==========================*/
