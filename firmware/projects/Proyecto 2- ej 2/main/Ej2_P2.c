@@ -1,4 +1,4 @@
-/*! @mainpage Ej1_P2
+/*! @mainpage Ej2_P2
  *
  * @section genDesc General Description
  *
@@ -33,87 +33,59 @@
 #include "switch.h"
 #include "hc_sr04.h"
 #include "gpio_mcu.h"
+#include "timer_mcu.h"
 #include "lcditse0803.h"
 /*==================[macros and definitions]=================================*/
-#define CONFIG_BLINK_PERIOD 1000
-#define CONFIG_BLINK_PERIOD_3 250
-#define CONFIG_BLINK_PERIOD_2 100
+#define CONFIG_PERIOD_US 1000*1000
+
 
 /*==================[internal data definition]===============================*/
 uint16_t distance = 0;
 bool toggle = false;
 bool hold = false;
-TaskHandle_t key_task_handle = NULL;
 TaskHandle_t leds_task_handle = NULL;
 TaskHandle_t measure_task_handle = NULL;
 TaskHandle_t lcd_task_handle = NULL;
 /*==================[internal functions declaration]=========================*/
 
 /**
- * @brief Tarea que se ejecuta de manera infinita y se encarga de leer el estado de los switches y actualizar las variables toggle y hold según sea necesario.
- *
- * @param pvParameter No se utiliza en esta implementación.
+ * @brief Función invocada en la interrupción del timer measure
  */
-static void KeyTask(void *pvParameter)
+void FuncTimerMeasure(void *param)
 {
-	while (true)
-	{
-		uint8_t teclas;
-		teclas = SwitchesRead();
-		if (teclas == SWITCH_1)
-		{
-			toggle = !toggle;
-			LedOff(LED_1);
-			LedOff(LED_2);
-			LedOff(LED_3);
-		}
-			
-		if (teclas == SWITCH_2)
-		{
-			hold = !hold;
-		}
-		vTaskDelay(CONFIG_BLINK_PERIOD_2 / portTICK_PERIOD_MS); // usar otro delay
-	}
+	vTaskNotifyGiveFromISR(measure_task_handle, pdFALSE); /* Envía una notificación a la tarea asociada */
+}
+/**
+ * @brief Función invocada en la interrupción del timer LCD
+ */
+void FuncTimerLCD(void *param)
+{
+	vTaskNotifyGiveFromISR(lcd_task_handle, pdFALSE); /* Envía una notificación a la tarea asociada  */
+	
+	vTaskNotifyGiveFromISR(leds_task_handle, pdFALSE);
+}
+/**
+ * @brief Función invocada en la interrupción del timer leds
+ */
+void FuncTimerLeds(void *param)
+{
+	vTaskNotifyGiveFromISR(leds_task_handle, pdFALSE); /* Envía una notificación a la tarea asociada */
 }
 
-/**
- * @brief Tarea responsable de medir la distancia mediante el sensor HcSr04.
- * 
- * Esta función se ejecuta indefinidamente y verifica la bandera toggle para determinar si realizar la medición de la distancia.
- * 
- * @param pvParameter Un puntero al parámetro de la tarea, no utilizado en esta función.
- * 
- * @return Ninguno
- */
 static void MeasureTask(void *pvParameter)
 {
 	while (true)
 	{
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		if (toggle)
 			distance = HcSr04ReadDistanceInCentimeters();
-		vTaskDelay(CONFIG_BLINK_PERIOD_3 / portTICK_PERIOD_MS);
 	}
 }
-/**
- * La función LedsTask controla el estado de los LEDs en función del valor actual de la distancia.
- * 
- * Esta función se ejecuta de manera indefinida y verifica el valor de la distancia para determinar qué LEDs encender o apagar.
- * Los LEDs se controlan de la siguiente manera:
- * - Si la distancia es menor o igual a 10, todos los LEDs se apagan.
- * - Si la distancia está entre 10 y 20, solo el LED_1 se enciende.
- * - Si la distancia está entre 20 y 30, los LEDs LED_1 y LED_2 se encienden.
- * - Si la distancia es mayor o igual a 30, todos los LEDs se encienden.
- * 
- * La función toma un puntero a void como parámetro, pero no se utiliza dentro de la función.
- * La función no devuelve ningún valor.
- * 
- * @param pvParameter Un puntero a void que no se utiliza dentro de la función.
- * @return Ninguno
- */
 static void LedsTask(void *pvParameter)
 {
 	while (true)
 	{
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* La tarea espera en este punto hasta recibir una notificación */
 		if (distance <= 10)
 		{
 			LedOff(LED_1);
@@ -126,7 +98,7 @@ static void LedsTask(void *pvParameter)
 			LedOff(LED_2);
 			LedOff(LED_3);
 		}
-		
+
 		if (distance >= 20 && distance <= 30)
 		{
 			LedOn(LED_1);
@@ -139,22 +111,13 @@ static void LedsTask(void *pvParameter)
 			LedOn(LED_2);
 			LedOn(LED_3);
 		}
-		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
 }
-/**
- * @brief Tarea responsable de actualizar la pantalla LCD.
- * 
- * Esta función se ejecuta indefinidamente y verifica la bandera toggle para determinar si mostrar la distancia actual o apagar la pantalla LCD.
- * 
- * @param pvParameter Un puntero al parámetro de la tarea, no utilizado en esta función.
- * 
- * @return Ninguno
- */
 static void LCDTask(void *pvParameter)
 {
 	while (true)
 	{
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		if (toggle)
 		{
 			if (!hold)
@@ -164,8 +127,15 @@ static void LCDTask(void *pvParameter)
 		}
 		else
 			LcdItsE0803Off();
-		vTaskDelay(CONFIG_BLINK_PERIOD_2 / portTICK_PERIOD_MS);
 	}
+}
+void Key1(void)
+{
+	toggle = !toggle;
+}
+void Key2(void)
+{
+	hold = !hold;
 }
 /*==================[external functions definition]==========================*/
 void app_main(void)
@@ -174,7 +144,34 @@ void app_main(void)
 	SwitchesInit();
 	HcSr04Init(GPIO_3, GPIO_2);
 	LcdItsE0803Init();
-	xTaskCreate(&KeyTask, "Tarea_Teclas", 512, NULL, 5, &key_task_handle);
+	/* Timer configuration */
+	timer_config_t timer_measure = {
+		.timer = TIMER_A,
+		.period = CONFIG_PERIOD_US,
+		.func_p = FuncTimerMeasure,
+		.param_p = NULL};
+	TimerInit(&timer_measure);
+
+	timer_config_t timer_lcd = {
+		.timer = TIMER_B,
+		.period = CONFIG_PERIOD_US,
+		.func_p = FuncTimerLCD,
+		.param_p = NULL};
+	TimerInit(&timer_lcd);
+
+	timer_config_t timer_leds = {
+		.timer = TIMER_C,
+		.period = CONFIG_PERIOD_US,
+		.func_p = FuncTimerLeds,
+		.param_p = NULL
+		};
+	TimerInit(&timer_leds);
+	TimerStart(timer_lcd.timer);
+	TimerStart(timer_measure.timer);
+	TimerStart(timer_leds.timer);
+
+	SwitchActivInt(SWITCH_1, Key1, NULL);
+	SwitchActivInt(SWITCH_2, Key2, NULL);
 	xTaskCreate(&LedsTask, "LED_2", 512, NULL, 5, &leds_task_handle);
 	xTaskCreate(&MeasureTask, "LED_3", 512, NULL, 5, &measure_task_handle);
 	xTaskCreate(&LCDTask, "LED_3", 512, NULL, 5, &lcd_task_handle);
