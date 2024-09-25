@@ -104,8 +104,8 @@ void UartSendBuffer(uart_mcu_port_t port, const char *data, uint8_t nbytes);
  * @param base Base of the converted number (2: binary, 10: decimal, 16: hexadecimal)
  * @return uint8_t* 
  */
-uint8_t* UartItoa(uint32_t val, uint8_t base);
-
+uint8_t* UartItoa(uint32_t val, uint8_t base); //convertir entero a ascii
+//char*()
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */
