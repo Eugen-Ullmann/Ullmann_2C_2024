@@ -2,15 +2,25 @@
  *
  * @section genDesc General Description
  *
- * This section describes how the program works.
+ * Mide la distancia por medio de un sensor de ultrasonido y muestre el valor en el LCD.
  *
  * <a href="https://drive.google.com/...">Operation Example</a>
  *
  * @section hardConn Hardware Connection
  *
- * |    Peripheral  |   ESP32   	|
- * |:--------------:|:--------------|
- * | 	PIN_X	 	| 	GPIO_X		|
+ * |   EDU-ESP    | Periferico|
+ * |:----------:|:-----------|
+ * | GPIO_20    | 		D1   |
+ * | GPIO_21    | 		D2 |
+ * | GPIO_22    | 		D3   |
+ * | GPIO_23    | 		D4   |
+ * | GPIO_19    | 		SEL_1 |
+ * | GPIO_18    | 		SEL_2   |
+ * | GPIO_9    | 		SEL_3   |
+ * | +5V    | 		+5V   |
+ * | GND    | 		GND   |
+ * | GPIO_3    | 	ECHO	|
+ * | GPIO_2    | 	TRIGGER |
  *
  *
  * @section changelog Changelog

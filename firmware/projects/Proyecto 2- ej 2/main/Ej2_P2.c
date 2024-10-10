@@ -2,15 +2,25 @@
  *
  * @section genDesc General Description
  *
- * This section describes how the program works.
+ * Mide la distancia por medio de un sensor de ultrasonido y muestre el valor en el LCD.
  *
  * <a href="https://drive.google.com/...">Operation Example</a>
  *
  * @section hardConn Hardware Connection
  *
- * |    Peripheral  |   ESP32   	|
- * |:--------------:|:--------------|
- * | 	PIN_X	 	| 	GPIO_X		|
+  * |   EDU-ESP    | Periferico|
+ * |:----------:|:-----------|
+ * | GPIO_20    | 		D1   |
+ * | GPIO_21    | 		D2 |
+ * | GPIO_22    | 		D3   |
+ * | GPIO_23    | 		D4   |
+ * | GPIO_19    | 		SEL_1 |
+ * | GPIO_18    | 		SEL_2   |
+ * | GPIO_9    | 		SEL_3   |
+ * | +5V    | 		+5V   |
+ * | GND    | 		GND   |
+ * | GPIO_3    | 	ECHO	|
+ * | GPIO_2    | 	TRIGGER |
  *
  *
  * @section changelog Changelog
@@ -71,6 +81,7 @@ void FuncTimerLCD(void *param)
 void FuncTimerLeds(void *param)
 {
 	//vTaskNotifyGiveFromISR(leds_task_handle, pdFALSE); /* Envía una notificación a la tarea asociada */
+	//Lo comente aca porque no funcionaba el timer C, lo puse junto al timer B
 }
 
 static void MeasureTask(void *pvParameter)
@@ -82,6 +93,15 @@ static void MeasureTask(void *pvParameter)
 			distance = HcSr04ReadDistanceInCentimeters();
 	}
 }
+/**
+ * @brief Tarea que controla el estado de los LEDs según el valor de la distancia actual.
+ *
+ * Esta función se ejecuta indefinidamente y espera notificaciones. Cuando se notifica, verifica el valor de la distancia y establece los LEDs en consecuencia.
+ * 
+ * @param pvParameter Un puntero void que no se utiliza dentro de la función.
+ * 
+ * @return Ninguno
+ */
 static void LedsTask(void *pvParameter)
 {
 	while (true)
@@ -114,6 +134,15 @@ static void LedsTask(void *pvParameter)
 		}
 	}
 }
+/**
+ * @brief Tarea responsable de mostrar la distancia actual en la pantalla LCD.
+ *
+ * Esta función se ejecuta indefinidamente y espera notificaciones. Cuando se notifica, verifica la bandera toggle y la bandera hold para determinar si mostrar la distancia actual o apagar la pantalla LCD.
+ *
+ * @param pvParameter Puntero al parámetro de la tarea, no utilizado en esta función.
+ *
+ * @return Ninguno
+ */
 static void LCDTask(void *pvParameter)
 {
 	while (true)
@@ -130,10 +159,26 @@ static void LCDTask(void *pvParameter)
 			LcdItsE0803Off();
 	}
 }
+/**
+ * @brief Invierte el estado de la variable toggle.
+ *
+ * Esta función invierte el estado actual de la variable toggle.
+ *
+ * @param None
+ * @return None
+ */
 void Key1(void)
 {
 	toggle = !toggle;
 }
+/**
+ * @brief Invierte el estado de la variable hold.
+ *
+ * Esta función invierte el estado actual de la variable hold.
+ *
+ * @param None
+ * @return None
+ */
 void Key2(void)
 {
 	hold = !hold;

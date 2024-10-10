@@ -1,16 +1,19 @@
-/*! @mainpage Ej3_P2
+/*! @mainpage Ej4_P2
  *
  * @section genDesc General Description
  *
- * This section describes how the program works.
+ * Un osciloscopio que muestra una senal ecg en base a un arreglo de 231 muestras.
  *
  * <a href="https://drive.google.com/...">Operation Example</a>
  *
  * @section hardConn Hardware Connection
  *
- * |    Peripheral  |   ESP32   	|
- * |:--------------:|:--------------|
- * | 	PIN_X	 	| 	GPIO_X		|
+  * |   EDU-ESP    | Periferico|
+ * |:----------:|:-----------|
+ * | CH1    | POTENCIOMETRO PATA	IZQ	 |
+ * | CH0    | POTENCIOMETRO PUNTO MEDIO	|
+ * | GND    | POTENCIOMETRO	PATA DERECHA  |
+ 
  *
  *
  * @section changelog Changelog
